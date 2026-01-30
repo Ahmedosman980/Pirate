@@ -18,10 +18,39 @@ const cookiePath = path.join(__dirname, 'cookies.txt');
 const altCookiePath = path.join(process.cwd(), 'cookies.txt');
 const rootCookiePath = path.join(process.cwd(), '..', 'cookies.txt');
 
+// Helper to convert JSON cookies to Netscape format (required by yt-dlp)
+function convertJsonToNetscape(jsonStr) {
+    try {
+        const cookies = JSON.parse(jsonStr);
+        if (!Array.isArray(cookies)) return jsonStr;
+
+        let netscape = "# Netscape HTTP Cookie File\n";
+        cookies.forEach(c => {
+            const domain = c.domain || '';
+            const flag = domain.startsWith('.') ? 'TRUE' : 'FALSE';
+            const path = c.path || '/';
+            const secure = c.secure ? 'TRUE' : 'FALSE';
+            const expiry = Math.floor(c.expirationDate || (Date.now() / 1000) + 86400 * 30);
+            const name = c.name || '';
+            const value = c.value || '';
+            netscape += `${domain}\t${flag}\t${path}\t${secure}\t${expiry}\t${name}\t${value}\n`;
+        });
+        return netscape;
+    } catch (e) {
+        return jsonStr; // Not JSON, assume already Netscape
+    }
+}
+
 // AUTO-CREATE COOKIES FILE FROM ENV VAR (FOR RENDER)
 if (process.env.YOUTUBE_COOKIES) {
     try {
-        fs.writeFileSync(cookiePath, process.env.YOUTUBE_COOKIES);
+        let cookieContent = process.env.YOUTUBE_COOKIES.trim();
+        // Auto-convert if it looks like JSON
+        if (cookieContent.startsWith('[') && cookieContent.endsWith(']')) {
+            console.log('[SERVER] JSON Cookies detected. Converting to Netscape format...');
+            cookieContent = convertJsonToNetscape(cookieContent);
+        }
+        fs.writeFileSync(cookiePath, cookieContent);
         console.log('[SERVER] Successfully created cookies.txt from YOUTUBE_COOKIES env var.');
     } catch (err) {
         console.error('[SERVER] Failed to create cookies.txt from env var:', err.message);
