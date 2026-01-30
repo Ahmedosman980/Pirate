@@ -45,13 +45,23 @@ function convertJsonToNetscape(jsonStr) {
 if (process.env.YOUTUBE_COOKIES) {
     try {
         let cookieContent = process.env.YOUTUBE_COOKIES.trim();
-        // Auto-convert if it looks like JSON
-        if (cookieContent.startsWith('[') && cookieContent.endsWith(']')) {
-            console.log('[SERVER] JSON Cookies detected. Converting to Netscape format...');
-            cookieContent = convertJsonToNetscape(cookieContent);
+        console.log(`[SERVER] YOUTUBE_COOKIES env var found. Length: ${cookieContent.length}`);
+        console.log(`[SERVER] First 10 chars: ${cookieContent.substring(0, 10)}`);
+
+        // More robust JSON detection: handle any leading/trailing whitespace or brackets
+        if (cookieContent.includes('[{') || cookieContent.startsWith('[') || cookieContent.startsWith('{')) {
+            console.log('[SERVER] Potential JSON Cookies detected. Attempting conversion...');
+            const converted = convertJsonToNetscape(cookieContent);
+            if (converted !== cookieContent) {
+                console.log('[SERVER] Successfully converted JSON to Netscape format.');
+                cookieContent = converted;
+            } else {
+                console.log('[SERVER] Conversion returned original content (maybe not an array or failed).');
+            }
         }
+
         fs.writeFileSync(cookiePath, cookieContent);
-        console.log('[SERVER] Successfully created cookies.txt from YOUTUBE_COOKIES env var.');
+        console.log(`[SERVER] Successfully wrote to ${cookiePath}. Content starts with: ${cookieContent.substring(0, 30)}`);
     } catch (err) {
         console.error('[SERVER] Failed to create cookies.txt from env var:', err.message);
     }
