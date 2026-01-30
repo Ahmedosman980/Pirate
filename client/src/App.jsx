@@ -25,11 +25,12 @@ function App() {
             });
 
             const data = await response.json();
-            if (data.error) throw new Error(data.error);
+            if (data.error) throw new Error(data.details || data.error);
 
             setVideoInfo(data);
         } catch (err) {
-            setError(err.message || 'Something went wrong. Pirate ship hit a rock!');
+            const msg = err.message || 'Something went wrong. Pirate ship hit a rock!';
+            setError(msg);
         } finally {
             setLoading(false);
         }

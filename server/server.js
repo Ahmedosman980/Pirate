@@ -40,14 +40,14 @@ app.post('/api/fetch', async (req, res) => {
             noWarnings: true,
             preferFreeFormats: true,
             youtubeSkipDashManifest: true,
+            geoBypass: true,
+            forceIpv4: true,
             addHeader: [
-                'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+                'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
                 'Accept-Language: en-US,en;q=0.9',
-                'Sec-Ch-Ua: "Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
-                'Sec-Ch-Ua-Mobile: ?0',
-                'Sec-Ch-Ua-Platform: "Windows"'
+                'Referer: https://www.google.com/'
             ],
-            // Use different extraction methods to try and bypass bot detection
             extractorArgs: 'youtube:player_client=ios,android,web'
         });
 
@@ -84,7 +84,11 @@ app.post('/api/fetch', async (req, res) => {
         });
     } catch (error) {
         console.error('Fetch Error:', error);
-        res.status(500).json({ error: 'Failed to fetch video information. The ship might be blocked or the link is invalid.' });
+        const detailedError = error.stderr || error.message || 'Unknown error';
+        res.status(500).json({
+            error: 'Pirate ship hit a hidden rock!',
+            details: detailedError
+        });
     }
 });
 
