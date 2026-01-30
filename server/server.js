@@ -14,13 +14,26 @@ const ytDlpPath = isWindows
     ? path.join(__dirname, 'yt-dlp.exe')
     : path.join(__dirname, 'yt-dlp');
 
-const cookiePath = path.join(__dirname, 'cookies.txt'); // Added cookiePath definition
+const cookiePath = path.join(__dirname, 'cookies.txt');
+const altCookiePath = path.join(process.cwd(), 'cookies.txt');
 
-const youtubeDl = (url, options) => { // Modified youtubeDl to be a function
+const youtubeDl = (url, options) => {
     const finalOptions = { ...options };
+    let actualCookiePath = null;
+
     if (fs.existsSync(cookiePath)) {
-        finalOptions.cookies = cookiePath;
+        actualCookiePath = cookiePath;
+    } else if (fs.existsSync(altCookiePath)) {
+        actualCookiePath = altCookiePath;
     }
+
+    if (actualCookiePath) {
+        console.log(`[SERVER] Cookies file detected at: ${actualCookiePath}`);
+        finalOptions.cookies = actualCookiePath;
+    } else {
+        console.log('[SERVER] No cookies.txt found. YouTube might block this request.');
+    }
+
     return createYoutubeDl(ytDlpPath)(url, finalOptions);
 };
 
@@ -152,8 +165,13 @@ app.get('/api/download', async (req, res) => {
             '--extractor-args', 'youtube:player_client=ios,android'
         ];
 
-        if (fs.existsSync(cookiePath)) {
-            args.push('--cookies', cookiePath);
+        let actualCookiePath = null;
+        if (fs.existsSync(cookiePath)) actualCookiePath = cookiePath;
+        else if (fs.existsSync(altCookiePath)) actualCookiePath = altCookiePath;
+
+        if (actualCookiePath) {
+            console.log(`[DOWNLOAD] Using cookies from: ${actualCookiePath}`);
+            args.push('--cookies', actualCookiePath);
         }
 
         const subprocess = spawn(ytDlpPath, args);
