@@ -16,22 +16,37 @@ const ytDlpPath = isWindows
 
 const cookiePath = path.join(__dirname, 'cookies.txt');
 const altCookiePath = path.join(process.cwd(), 'cookies.txt');
+const rootCookiePath = path.join(process.cwd(), '..', 'cookies.txt');
 
 const youtubeDl = (url, options) => {
     const finalOptions = { ...options };
     let actualCookiePath = null;
 
+    console.log(`[DEBUG] __dirname: ${__dirname}`);
+    console.log(`[DEBUG] process.cwd(): ${process.cwd()}`);
+
+    try {
+        const files = fs.readdirSync(process.cwd());
+        console.log(`[DEBUG] Files in cwd: ${files.join(', ')}`);
+        const parentFiles = fs.readdirSync(path.join(process.cwd(), '..'));
+        console.log(`[DEBUG] Files in parent: ${parentFiles.join(', ')}`);
+    } catch (e) {
+        console.log(`[DEBUG] Could not list files: ${e.message}`);
+    }
+
     if (fs.existsSync(cookiePath)) {
         actualCookiePath = cookiePath;
     } else if (fs.existsSync(altCookiePath)) {
         actualCookiePath = altCookiePath;
+    } else if (fs.existsSync(rootCookiePath)) {
+        actualCookiePath = rootCookiePath;
     }
 
     if (actualCookiePath) {
         console.log(`[SERVER] Cookies file detected at: ${actualCookiePath}`);
         finalOptions.cookies = actualCookiePath;
     } else {
-        console.log('[SERVER] No cookies.txt found. YouTube might block this request.');
+        console.log('[SERVER] No cookies.txt found. Check your Render Secret File settings.');
     }
 
     return createYoutubeDl(ytDlpPath)(url, finalOptions);
@@ -168,6 +183,7 @@ app.get('/api/download', async (req, res) => {
         let actualCookiePath = null;
         if (fs.existsSync(cookiePath)) actualCookiePath = cookiePath;
         else if (fs.existsSync(altCookiePath)) actualCookiePath = altCookiePath;
+        else if (fs.existsSync(rootCookiePath)) actualCookiePath = rootCookiePath;
 
         if (actualCookiePath) {
             console.log(`[DOWNLOAD] Using cookies from: ${actualCookiePath}`);
