@@ -83,7 +83,12 @@ function App() {
                     </div>
                 </div>
 
-                {error && <p style={{ color: '#ff4b2b', textAlign: 'center', marginBottom: '1rem' }}>{error}</p>}
+                {error && (
+                    <div className="error-box">
+                        <p>{error}</p>
+                        <span className="error-tip">Please copy the message above and tell the Captain!</span>
+                    </div>
+                )}
 
                 {videoInfo && (
                     <div className="video-info">
