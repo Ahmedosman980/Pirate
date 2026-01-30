@@ -3,7 +3,7 @@ import './index.css';
 
 // Set this to your public backend URL (e.g., from localtunnel or ngrok)
 // For local testing, keep it as 'http://localhost:5000'
-const API_URL = 'http://localhost:5000';
+const API_URL = 'https://pirate-loot-backend.onrender.com';
 
 function App() {
     const [url, setUrl] = useState('');

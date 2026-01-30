@@ -2,13 +2,18 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { create: createYoutubeDl } = require('yt-dlp-exec');
-const youtubeDl = createYoutubeDl(path.join(__dirname, 'yt-dlp.exe'));
 const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const isWindows = process.platform === 'win32';
+
+const ytDlpPath = isWindows
+    ? path.join(__dirname, 'yt-dlp.exe')
+    : path.join(__dirname, 'yt-dlp');
+
+const youtubeDl = createYoutubeDl(ytDlpPath);
 
 app.use(cors());
 app.use(express.json());
@@ -107,9 +112,6 @@ app.get('/api/download', async (req, res) => {
     }
 
     const fileName = `${title || 'video'}.${ext || 'mp4'}`;
-    const ytDlpPath = isWindows
-        ? path.join(__dirname, 'yt-dlp.exe')
-        : path.join(__dirname, 'yt-dlp'); // Linux path for Render
 
     res.header('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
 
