@@ -18,6 +18,16 @@ const cookiePath = path.join(__dirname, 'cookies.txt');
 const altCookiePath = path.join(process.cwd(), 'cookies.txt');
 const rootCookiePath = path.join(process.cwd(), '..', 'cookies.txt');
 
+// AUTO-CREATE COOKIES FILE FROM ENV VAR (FOR RENDER)
+if (process.env.YOUTUBE_COOKIES) {
+    try {
+        fs.writeFileSync(cookiePath, process.env.YOUTUBE_COOKIES);
+        console.log('[SERVER] Successfully created cookies.txt from YOUTUBE_COOKIES env var.');
+    } catch (err) {
+        console.error('[SERVER] Failed to create cookies.txt from env var:', err.message);
+    }
+}
+
 const youtubeDl = (url, options) => {
     const finalOptions = { ...options };
     let actualCookiePath = null;
