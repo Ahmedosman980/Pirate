@@ -13,6 +13,7 @@ dist-ssr/
 
 # Server specifics
 yt-dlp.exe
+cookies.txt
 *.log
 
 # Editor folders

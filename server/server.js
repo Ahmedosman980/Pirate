@@ -4,6 +4,7 @@ const path = require('path');
 const { create: createYoutubeDl } = require('yt-dlp-exec');
 const fs = require('fs');
 require('dotenv').config();
+const axios = require('axios'); // Moved axios require to the top
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -13,12 +14,18 @@ const ytDlpPath = isWindows
     ? path.join(__dirname, 'yt-dlp.exe')
     : path.join(__dirname, 'yt-dlp');
 
-const youtubeDl = createYoutubeDl(ytDlpPath);
+const cookiePath = path.join(__dirname, 'cookies.txt'); // Added cookiePath definition
+
+const youtubeDl = (url, options) => { // Modified youtubeDl to be a function
+    const finalOptions = { ...options };
+    if (fs.existsSync(cookiePath)) {
+        finalOptions.cookies = cookiePath;
+    }
+    return createYoutubeDl(ytDlpPath)(url, finalOptions);
+};
 
 app.use(cors());
 app.use(express.json());
-
-const axios = require('axios');
 
 // API: Health check for Render.com
 app.get('/api/health', (req, res) => {
@@ -144,6 +151,10 @@ app.get('/api/download', async (req, res) => {
             '--add-header', 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
             '--extractor-args', 'youtube:player_client=ios,android'
         ];
+
+        if (fs.existsSync(cookiePath)) {
+            args.push('--cookies', cookiePath);
+        }
 
         const subprocess = spawn(ytDlpPath, args);
 
