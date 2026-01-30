@@ -39,7 +39,16 @@ app.post('/api/fetch', async (req, res) => {
             noCheckCertificates: true,
             noWarnings: true,
             preferFreeFormats: true,
-            addHeader: ['user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36']
+            youtubeSkipDashManifest: true,
+            addHeader: [
+                'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+                'Accept-Language: en-US,en;q=0.9',
+                'Sec-Ch-Ua: "Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
+                'Sec-Ch-Ua-Mobile: ?0',
+                'Sec-Ch-Ua-Platform: "Windows"'
+            ],
+            // Use different extraction methods to try and bypass bot detection
+            extractorArgs: 'youtube:player_client=ios,android,web'
         });
 
         // Expanded format parsing for all options
@@ -125,7 +134,9 @@ app.get('/api/download', async (req, res) => {
             '--output', '-',
             '--no-check-certificates',
             '--no-warnings',
-            '--add-header', 'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
+            '--add-header', 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            '--add-header', 'Accept-Language: en-US,en;q=0.9',
+            '--extractor-args', 'youtube:player_client=ios,android,web'
         ];
 
         const subprocess = spawn(ytDlpPath, args);
