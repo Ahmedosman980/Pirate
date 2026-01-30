@@ -26,18 +26,27 @@ function convertJsonToNetscape(jsonStr) {
 
         let netscape = "# Netscape HTTP Cookie File\n";
         cookies.forEach(c => {
-            const domain = c.domain || '';
-            const flag = domain.startsWith('.') ? 'TRUE' : 'FALSE';
+            let domain = c.domain || '';
             const path = c.path || '/';
             const secure = c.secure ? 'TRUE' : 'FALSE';
             const expiry = Math.floor(c.expirationDate || (Date.now() / 1000) + 86400 * 30);
             const name = c.name || '';
             const value = c.value || '';
-            netscape += `${domain}\t${flag}\t${path}\t${secure}\t${expiry}\t${name}\t${value}\n`;
+
+            // Handle HttpOnly prefix
+            let httpOnlyPrefix = '';
+            if (c.httpOnly) {
+                httpOnlyPrefix = '#HttpOnly_';
+            }
+
+            const flag = domain.startsWith('.') ? 'TRUE' : 'FALSE';
+
+            netscape += `${httpOnlyPrefix}${domain}\t${flag}\t${path}\t${secure}\t${expiry}\t${name}\t${value}\n`;
         });
         return netscape;
     } catch (e) {
-        return jsonStr; // Not JSON, assume already Netscape
+        console.error('[SERVER] Netscape conversion error:', e.message);
+        return jsonStr;
     }
 }
 
@@ -52,16 +61,17 @@ if (process.env.YOUTUBE_COOKIES) {
         if (cookieContent.includes('[{') || cookieContent.startsWith('[') || cookieContent.startsWith('{')) {
             console.log('[SERVER] Potential JSON Cookies detected. Attempting conversion...');
             const converted = convertJsonToNetscape(cookieContent);
-            if (converted !== cookieContent) {
+            if (converted.startsWith('# Netscape')) {
                 console.log('[SERVER] Successfully converted JSON to Netscape format.');
                 cookieContent = converted;
             } else {
-                console.log('[SERVER] Conversion returned original content (maybe not an array or failed).');
+                console.log('[SERVER] Conversion factor: Output did not start with Netscape header.');
             }
         }
 
         fs.writeFileSync(cookiePath, cookieContent);
-        console.log(`[SERVER] Successfully wrote to ${cookiePath}. Content starts with: ${cookieContent.substring(0, 30)}`);
+        console.log(`[SERVER] Successfully wrote to ${cookiePath}.`);
+        console.log(`[DEBUG] Final cookies head: ${cookieContent.substring(0, 50).replace(/\n/g, ' [NL] ')}`);
     } catch (err) {
         console.error('[SERVER] Failed to create cookies.txt from env var:', err.message);
     }
